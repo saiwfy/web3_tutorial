@@ -21,7 +21,6 @@ contract FundMeTest is Test {
     }
 
     function testPriceFeedVersionIsAccurate() public view {
-        console.log(fundMe.getVersion());
         assertEq(fundMe.getVersion(), 4);
     }
 }
