@@ -22,16 +22,17 @@ contract FundMe {
     address public /* immutable */ i_owner;
     // 最小捐赠金额（美元，常量） / Minimum donation amount in USD (constant)
     uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
-
+    AggregatorV3Interface private s_priceFeed;
     // 构造函数，设置合约所有者 / Constructor, sets contract owner
-    constructor() {
+    constructor(address priceFeed) {
+        s_priceFeed = AggregatorV3Interface(priceFeed);
         i_owner = msg.sender;
     }
 
     // 资金募集函数 / Function to accept funds
     function fund() public payable {
         // 检查捐赠金额是否达到最小要求 / Check if donation meets minimum requirement
-        require(msg.value.getConversionRate() >= MINIMUM_USD, "You need to spend more ETH!");
+        require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "You need to spend more ETH!");
         // 更新捐赠记录 / Update funding records
         addressToAmountFunded[msg.sender] += msg.value;
         funders.push(msg.sender);
@@ -39,8 +40,7 @@ contract FundMe {
 
     // 获取预言机版本 / Get price feed version
     function getVersion() public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
-        return priceFeed.version();
+        return s_priceFeed.version();
     }
 
     // 只有所有者才能调用的修饰器 / Modifier to restrict function access to owner only
